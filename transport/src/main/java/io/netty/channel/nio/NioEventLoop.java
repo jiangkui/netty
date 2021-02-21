@@ -431,6 +431,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * fixme jiangkui netty 模型中的那个 NioEventLoop 无线循环的圈【Select --> SelectKeys --> process --> Select】
+     */
     @Override
     protected void run() {
         int selectCnt = 0;

@@ -269,12 +269,26 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
+        /*
+            1. 拿到 JDK nio 的 channel，之后让 Netty 来包装下，通过这个方法拿到 SelectorProvider.openServerSocketChannel()
+            2. 创建了唯一的 ChannelId，创建了 UniMessageUnsafe，用来操作消息
+                - 【重点】创建了 DefaultChannelPipeline 通道，是一个双向链表结构。用于过滤所有进出的消息。
+                - Pipeline 就是一个方 Handler 的双向链表，编码解码器，业务处理器都在这个链表内。
+            3. 创建了 NioServerSocketChannelConfig 对象，对外配置。
+
+            内部 init 方法：初始化 NioServerSocketChannel
+                1. 设置 NioServerSocketChannel 的 TCP 属性
+                2. LinkedHashMap是非线程安全的，使用同步进行处理
+                3. 对 NioServerSocketChannel 的 ChannelPipeline 添加 ChannelLiniializer 处理器
+                4. init 的方法核心作用在和 ChannelPipeline 相关。
+         */
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
             return regFuture;
         }
 
+        // fixme jiangkui 关于 doBind()，其内部最终会调用到 NioServerSocketChannel 的 bind 方法
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();

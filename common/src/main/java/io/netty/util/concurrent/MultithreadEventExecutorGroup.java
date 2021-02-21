@@ -76,11 +76,29 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
+        /*
+            参数：nThreads = cpu core * 2
+            源码：Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
+        */
         children = new EventExecutor[nThreads];
 
         for (int i = 0; i < nThreads; i ++) {
             boolean success = false;
             try {
+                /*
+                 * 整体功能：
+                 *      创建了一个 SingleThreadEventExecutor，顶层接口与java 线程池 ThreadPoolExecutor 非常相似，都实现了 Executor 接口。
+                 *      都具有提交任务、BlockQueue、rejected 等基本能力，但区别在于，每次提交时，貌似都是new 一个 Thread 执行的，这点有待确认。
+                 *
+                 * 参数 executor：
+                 *      设计：其实就是 java concurrent 包的顶层接口，思想是：将任务提交和任务执行进行解耦。用户无需关注如何创建线程，如何调度线程来执行任务。
+                 *      功能：每次提交就会通过 io.netty.util.concurrent.DefaultThreadFactory.newThread(java.lang.Runnable) 创建一个线程执行。
+                 *      问题：每次都new，会不会有问题？
+                 * 参数 maxPendingTasks：
+                 *      功能：队列长度（最大挂起数量），默认是16个，实现是 LinkedBlockingQueue ，超过之后就拒绝。参见：DEFAULT_MAX_PENDING_EXECUTOR_TASKS 变量
+                 * 参数 rejectedHandler：
+                 *      功能：拒绝策略，默认是直接抛 throw new RejectedExecutionException(); 跟 java 的 ThreadPoolExecutor 一样。
+                 */
                 children[i] = newChild(executor, args);
                 success = true;
             } catch (Exception e) {

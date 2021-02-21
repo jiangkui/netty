@@ -47,6 +47,22 @@ public final class EchoServer {
         } else {
             sslCtx = null;
         }
+        /*
+            fixme jiangkui 我们从这个方法来看源码
+
+            EventLoopGroup：本质跟 java 线程池差不多，有执行器、有队列、有拒绝策略
+            EventLoop：本质类似java 的一个线程，不过是自己一直在轮询事件任务，并且可以处理新提交的任务。
+            Pipeline：是存放编码器、解码器、业务处理器的一个双向链表。
+            Channel：本质包了 Java Nio 的 Channel，并提供 Pipeline 模型，方便编码操作。
+
+            ServerBootstrap：
+                1. 反射创建了一个 NioServerSocketChannel，内部包含 JDK 的 Channel
+                2. init 初始化 NioServerSocketChannel，设置 option、attr等
+                3. 通过 ServerBootstrap 的 bossGroup 注册 NioServerSocketChannel
+                4. 返回异步执行的占位符即 Future
+
+            最终会执行到 io.netty.channel.nio.NioEventLoop.run 方法，无限循环 io.netty.channel.SelectStrategy 的事件
+         */
 
         // Configure the server.
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -54,10 +70,17 @@ public final class EchoServer {
         final EchoServerHandler serverHandler = new EchoServerHandler();
         try {
             ServerBootstrap b = new ServerBootstrap();
+
+            // parentGroup：bossGroup
+            // childGroup：workerGroup
             b.group(bossGroup, workerGroup)
+             // 创建对应的 channel 对象
              .channel(NioServerSocketChannel.class)
+             // 传入TCP相关参数，放在 LinkedHashMap 内
              .option(ChannelOption.SO_BACKLOG, 100)
+             // 属于 ServerSocketChannel
              .handler(new LoggingHandler(LogLevel.INFO))
+             // 属于 SocketChannel 使用，即：workerGroup
              .childHandler(new ChannelInitializer<SocketChannel>() {
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
