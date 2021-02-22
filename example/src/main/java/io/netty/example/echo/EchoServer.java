@@ -54,6 +54,7 @@ public final class EchoServer {
             EventLoop：本质类似java 的一个线程，不过是自己一直在轮询事件任务，并且可以处理新提交的任务。
             Pipeline：是存放编码器、解码器、业务处理器的一个双向链表。
             Channel：本质包了 Java Nio 的 Channel，并提供 Pipeline 模型，方便编码操作。
+            EventExecutorChooser.next()：其实是从 EventExecutor[] 内轮训分配一个线程，分配方式参见：io.netty.util.concurrent.DefaultEventExecutorChooserFactory.GenericEventExecutorChooser.next
 
             ServerBootstrap：
                 1. 反射创建了一个 NioServerSocketChannel，内部包含 JDK 的 Channel

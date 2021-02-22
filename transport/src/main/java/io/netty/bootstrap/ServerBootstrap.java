@@ -212,6 +212,13 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             setAttributes(child, childAttrs);
 
             try {
+                /*
+                    fixme jiangkui 注册 channel 到 Selector，即：把 SocketChannel 注册到 workerEventLoop 内
+                        因为 workerGroup 有多个 EventLoop，所以这里要选一个放进去，目前是轮询分配。
+                        往 worker EventLoop 添加时，还会初始化 NioSocketChannel 的各种 option、attr、childHandler
+
+                    解释：每个 EventLoop 就是一个线程（Selector），会不断轮询内部负责的 SocketChannel 的各种事件。然后放到 selector 对应的工作队列内。
+                 */
                 childGroup.register(child).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {

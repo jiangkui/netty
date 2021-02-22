@@ -57,6 +57,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
 
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
 
+        // fixme jiangkui NioServerSocketChannel 时，这里存的是 SocketChannel
         private final List<Object> readBuf = new ArrayList<Object>();
 
         @Override
@@ -72,6 +73,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             try {
                 try {
                     do {
+                        // fixme jiangkui 获取本次 TCP 链接的 SocketChannel，并包装成 NioSocketChannel，之后放到 readBuf 内。
                         int localRead = doReadMessages(readBuf);
                         if (localRead == 0) {
                             break;
@@ -90,6 +92,10 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 int size = readBuf.size();
                 for (int i = 0; i < size; i ++) {
                     readPending = false;
+                    /*
+                        fixme jiankgui
+
+                     */
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
                 readBuf.clear();
