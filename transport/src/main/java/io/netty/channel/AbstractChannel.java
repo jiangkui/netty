@@ -464,6 +464,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             AbstractChannel.this.eventLoop = eventLoop;
 
+            // fixme jiangkui
             if (eventLoop.inEventLoop()) {
                 register0(promise);
             } else {
@@ -513,6 +514,8 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                         // again so that we process inbound data.
                         //
                         // See https://github.com/netty/netty/issues/4805
+
+                        // fixme jiangkui 接下来开始监听读事件就是 NioEventLoop 的循环。
                         beginRead();
                     }
                 }
